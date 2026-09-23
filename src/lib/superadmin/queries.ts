@@ -3,6 +3,7 @@ import { brandingAssetUrl, readableAdminPassword } from '@/lib/superadmin/format
 import type {
   BrandingFile,
   BusinessDetails,
+  BusinessHourRow,
   BusinessOverview,
   BusinessServiceRow,
   BusinessStats,
@@ -154,7 +155,7 @@ export function statsFromBusinesses(businesses: BusinessOverview[]): BusinessSta
 export async function getBusinessDetails(businessId: string): Promise<BusinessDetails | null> {
   const db = getServiceSupabase();
 
-  const [profileRes, usersRes, servicesRes] = await Promise.all([
+  const [profileRes, usersRes, servicesRes, hoursRes] = await Promise.all([
     db.from('business_profile').select('*').eq('id', businessId).maybeSingle(),
     db
       .from('users')
@@ -166,6 +167,13 @@ export async function getBusinessDetails(businessId: string): Promise<BusinessDe
       .select('id, name, price, duration_minutes, is_active, order_index')
       .eq('business_id', businessId)
       .order('name'),
+    db
+      .from('business_hours')
+      .select(
+        'id, user_id, day_of_week, start_time, end_time, is_active, slot_duration_minutes, breaks, break_start_time, break_end_time',
+      )
+      .eq('business_id', businessId)
+      .order('day_of_week'),
   ]);
 
   if (profileRes.error) {
@@ -173,6 +181,9 @@ export async function getBusinessDetails(businessId: string): Promise<BusinessDe
     return null;
   }
   if (!profileRes.data) return null;
+  if (hoursRes.error) {
+    console.error('[queries] getBusinessDetails hours:', hoursRes.error.message);
+  }
 
   const profile = profileRes.data as Record<string, unknown>;
   const hint = (profile.branding_client_name as string | null) ?? null;
@@ -183,6 +194,7 @@ export async function getBusinessDetails(businessId: string): Promise<BusinessDe
     profile,
     users: (usersRes.data ?? []) as BusinessUserRow[],
     services: (servicesRes.data ?? []) as BusinessServiceRow[],
+    hours: hoursRes.error ? [] : ((hoursRes.data ?? []) as BusinessHourRow[]),
     brandingFiles,
     brandingFolder,
   };

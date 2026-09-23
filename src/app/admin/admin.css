@@ -1342,3 +1342,143 @@ a.admin-btn,
     grid-template-columns: 1fr;
   }
 }
+
+.admin-hours {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-hours-manager {
+  max-width: 320px;
+}
+
+.admin-hour-row {
+  display: grid;
+  grid-template-columns: 72px 88px repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.admin-hour-head {
+  color: var(--text-muted);
+  font: var(--type-caption);
+}
+
+.admin-hour-row strong {
+  padding-bottom: 10px;
+  color: var(--text-strong);
+}
+
+.admin-hour-row.is-off {
+  opacity: 0.72;
+}
+
+.admin-hour-open {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--hit-min);
+  color: var(--text-body);
+  font: var(--type-label);
+}
+
+.admin-hour-row .admin-field {
+  display: block;
+}
+
+.admin-hour-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.admin-hero-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.admin-hero-tile,
+.admin-hero-single {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.admin-hero-tile img,
+.admin-hero-single img,
+.admin-hero-single video {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--ink-100);
+}
+
+.admin-hero-single {
+  max-width: 280px;
+}
+
+.admin-hero-tile figcaption,
+.admin-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-hero-actions button,
+.admin-hero-tile figcaption > span:first-child {
+  color: var(--text-body);
+  font: var(--type-caption);
+}
+
+.admin-hero-actions button {
+  padding: 4px 8px;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  cursor: pointer;
+}
+
+.admin-hero-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@media (max-width: 800px) {
+  .admin-hour-row,
+  .admin-hour-head {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-hour-head {
+    display: none;
+  }
+
+  .admin-hour-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .admin-hour-row strong,
+  .admin-hour-open {
+    grid-column: 1 / -1;
+  }
+}

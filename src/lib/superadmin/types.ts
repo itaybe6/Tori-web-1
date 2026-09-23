@@ -65,10 +65,30 @@ export interface BrandingFile {
   content: string | null;
 }
 
+export interface BusinessHourBreak {
+  start_time: string;
+  end_time: string;
+}
+
+/** One weekly row from `business_hours` for a manager. */
+export interface BusinessHourRow {
+  id: string;
+  user_id: string | null;
+  day_of_week: number;
+  start_time: string | null;
+  end_time: string | null;
+  is_active: boolean | null;
+  slot_duration_minutes: number | null;
+  breaks: BusinessHourBreak[] | null;
+  break_start_time: string | null;
+  break_end_time: string | null;
+}
+
 export interface BusinessDetails {
   profile: Record<string, unknown> | null;
   users: BusinessUserRow[];
   services: BusinessServiceRow[];
+  hours: BusinessHourRow[];
   brandingFiles: BrandingFile[];
   brandingFolder: string | null;
 }

@@ -14,6 +14,7 @@ import {
 } from "@/lib/superadmin/format";
 import { INCLUDED_SMS } from "@/lib/superadmin/pulseem-plans";
 import type { BusinessDetails, PulseemEditorState } from "@/lib/superadmin/types";
+import { HomeHeroPanel, HoursPanel } from "./studio-panels";
 
 type Banner = { kind: "success" | "error"; text: string } | null;
 
@@ -169,6 +170,9 @@ export default function AppDetailPage() {
           </div>
         </aside>
       </div>
+
+      <HoursPanel businessId={businessId} admins={admins} hours={details.hours ?? []} onSaved={notify} />
+      <HomeHeroPanel businessId={businessId} profile={profile} onSaved={notify} />
 
       <section className="admin-card">
         <div className="admin-card-head">
