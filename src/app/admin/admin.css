@@ -1191,6 +1191,11 @@ a.admin-btn,
   color: var(--action-disabled-fg);
 }
 
+.admin-service-remove {
+  min-height: 32px;
+  padding: 0 12px;
+}
+
 @media (max-width: 960px) {
   .admin-app-grid {
     grid-template-columns: 1fr;

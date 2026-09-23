@@ -13,7 +13,7 @@ import {
   initialOf,
 } from "@/lib/superadmin/format";
 import { INCLUDED_SMS } from "@/lib/superadmin/pulseem-plans";
-import type { BusinessDetails, PulseemEditorState } from "@/lib/superadmin/types";
+import type { BusinessDetails, BusinessServiceRow, PulseemEditorState } from "@/lib/superadmin/types";
 import { HomeHeroPanel, HoursPanel } from "./studio-panels";
 
 type Banner = { kind: "success" | "error"; text: string } | null;
@@ -30,6 +30,7 @@ export default function AppDetailPage() {
   const [error, setError] = useState("");
   const [banner, setBanner] = useState<Banner>(null);
   const [copied, setCopied] = useState(false);
+  const [removingServiceId, setRemovingServiceId] = useState("");
 
   const fetchDetails = useCallback(
     () => adminJson<BusinessDetails & { ok: true }>(`/api/admin/apps/${businessId}`),
@@ -82,6 +83,23 @@ export default function AppDetailPage() {
   const clients = details.users.filter((user) => user.user_type === "client");
   const admins = details.users.filter((user) => user.user_type === "admin");
   const activeServices = details.services.filter((service) => service.is_active).length;
+
+  async function removeService(service: BusinessServiceRow) {
+    const label = service.name?.trim() || "השירות";
+    if (!window.confirm(`להסיר את "${label}"?`)) return;
+    setRemovingServiceId(service.id);
+    try {
+      await adminJson(`/api/admin/apps/${businessId}/services`, {
+        method: "DELETE",
+        body: JSON.stringify({ serviceId: service.id }),
+      });
+      notify(`השירות "${label}" הוסר`);
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "הסרת השירות נכשלה", "error");
+    } finally {
+      setRemovingServiceId("");
+    }
+  }
 
   async function copyId() {
     try {
@@ -235,6 +253,7 @@ export default function AppDetailPage() {
                   <th>מחיר</th>
                   <th>משך</th>
                   <th>סטטוס</th>
+                  <th>הסרה</th>
                 </tr>
               </thead>
               <tbody>
@@ -249,6 +268,16 @@ export default function AppDetailPage() {
                       <span className={`admin-status ${service.is_active ? "is-paid" : ""}`}>
                         {service.is_active ? "פעיל" : "לא פעיל"}
                       </span>
+                    </td>
+                    <td>
+                      <button
+                        className="admin-btn admin-btn-danger admin-service-remove"
+                        type="button"
+                        disabled={removingServiceId !== ""}
+                        onClick={() => void removeService(service)}
+                      >
+                        {removingServiceId === service.id ? "מסיר…" : "הסרה"}
+                      </button>
                     </td>
                   </tr>
                 ))}

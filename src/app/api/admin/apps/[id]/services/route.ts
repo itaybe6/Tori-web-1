@@ -83,3 +83,54 @@ export async function POST(request: Request, context: RouteContext) {
 
   return ok({ service: created });
 }
+
+export async function DELETE(request: Request, context: RouteContext) {
+  const auth = await guardAdmin();
+  if (!auth.ok) return auth.response;
+  const { id } = await context.params;
+  if (!UUID_RE.test(id)) return fail("מזהה עסק לא תקין");
+
+  const body = (await request.json().catch(() => ({}))) as { serviceId?: unknown };
+  const serviceId = str(body.serviceId);
+  if (!UUID_RE.test(serviceId)) return fail("מזהה שירות לא תקין");
+
+  const db = getServiceSupabase();
+  const { data: service, error: serviceError } = await db
+    .from("services")
+    .select("id, name")
+    .eq("id", serviceId)
+    .eq("business_id", id)
+    .maybeSingle();
+  if (serviceError) return fail("טעינת השירות נכשלה", 500);
+  if (!service) return fail("השירות לא נמצא", 404);
+
+  const [appointments, recurring] = await Promise.all([
+    db.from("appointments").select("id", { count: "exact", head: true }).eq("business_id", id).eq("service_id", serviceId),
+    db
+      .from("recurring_appointments")
+      .select("id", { count: "exact", head: true })
+      .eq("business_id", id)
+      .eq("service_id", serviceId),
+  ]);
+  if (appointments.error || recurring.error) return fail("בדיקת התורים של השירות נכשלה", 500);
+  if ((appointments.count ?? 0) > 0 || (recurring.count ?? 0) > 0) {
+    return fail("אי אפשר להסיר שירות שיש לו תורים");
+  }
+
+  const [durations, forms] = await Promise.all([
+    db.from("client_service_durations").delete().eq("service_id", serviceId),
+    db.from("health_form_assignments").delete().eq("service_id", serviceId),
+  ]);
+  if (durations.error || forms.error) {
+    console.error("[apps/services] unlink:", durations.error?.message, forms.error?.message);
+    return fail("הסרת השירות נכשלה", 500);
+  }
+
+  const { error } = await db.from("services").delete().eq("id", serviceId).eq("business_id", id);
+  if (error) {
+    console.error("[apps/services] delete:", error.message);
+    return fail(error.code === "23503" ? "אי אפשר להסיר את השירות כי יש נתונים שמקושרים אליו" : "הסרת השירות נכשלה", 500);
+  }
+
+  return ok({ deleted: true });
+}
